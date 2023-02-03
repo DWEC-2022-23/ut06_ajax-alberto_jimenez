@@ -1,0 +1,5 @@
+{
+  "invitados": [
+    { "id": 1, "nombre": "María Lobo Garcia", "confirmado": false }, { "id": 2, "nombre": "Luis Fernández Sanchez", "confirmado": true}
+  ]
+}

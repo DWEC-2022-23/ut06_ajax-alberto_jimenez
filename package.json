@@ -1,14 +1,19 @@
 {
-  "name": "bodas",
+  "name": "novios",
   "version": "1.0.0",
-  "description": "app bodas",
-  "main": "index.js",
+  "description": "[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-c66648af7eb3fe8bc4f294546bfd86ef473780cde1dea487d3c4ff354943c9ae.svg)](https://classroom.github.com/online_ide?assignment_repo_id=9987658&assignment_repo_type=AssignmentRepo)",
+  "main": "novios.json",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Carlos Tessier",
-  "license": "ISC",
-  "dependencies": {
-    "json-server": "^0.17.1"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DWEC-2022-23/ut06_ajax-alberto_jimenez.git"
+  },
+  "author": "Alberto Jiménez",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/DWEC-2022-23/ut06_ajax-alberto_jimenez/issues"
+  },
+  "homepage": "https://github.com/DWEC-2022-23/ut06_ajax-alberto_jimenez#readme"
 }

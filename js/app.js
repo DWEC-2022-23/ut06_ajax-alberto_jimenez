@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('registrar');
   const input = form.querySelector('input');
-  
+
   const mainDiv = document.querySelector('.main');
   const ul = document.getElementById('invitedList');
-  
+
   const div = document.createElement('div');
   const filterLabel = document.createElement('label');
   const filterCheckBox = document.createElement('input');
-  
+
   filterLabel.textContent = "Ocultar los que no hayan respondido";
   filterCheckBox.type = 'checkbox';
   div.appendChild(filterLabel);
@@ -17,57 +17,90 @@ document.addEventListener('DOMContentLoaded', () => {
   filterCheckBox.addEventListener('change', (e) => {
     const isChecked = e.target.checked;
     const lis = ul.children;
-    if(isChecked) {
+    if (isChecked) {
       for (let i = 0; i < lis.length; i += 1) {
         let li = lis[i];
+        
         if (li.className === 'responded') {
-          li.style.display = '';  
+          li.style.display = '';
         } else {
-          li.style.display = 'none';                        
+          li.style.display = 'none';
         }
       }
     } else {
       for (let i = 0; i < lis.length; i += 1) {
         let li = lis[i];
         li.style.display = '';
-      }                                 
+      }
     }
   });
-  
-  function createLI(text) {
+
+  function createLI(invId, text, isChecked) {
     function createElement(elementName, property, value) {
-      const element = document.createElement(elementName);  
-      element[property] = value; 
+      const element = document.createElement(elementName);
+      element[property] = value;
+      
       return element;
     }
-    
+
     function appendToLI(elementName, property, value) {
-      const element = createElement(elementName, property, value);     
-      li.appendChild(element); 
+      const element = createElement(elementName, property, value);
+      li.appendChild(element);
       return element;
     }
-    
+
     const li = document.createElement('li');
-    appendToLI('span', 'textContent', text);     
+    li.dataset.invId = invId;
+    
+    if (isChecked) {
+      li.className = 'responded';
+    } else {
+      li.className = '';
+    }
+    
+    var checkbox = createElement('input', 'type', 'checkbox');
+    checkbox.checked = isChecked;
+    
+    appendToLI('span', 'textContent', text);
     appendToLI('label', 'textContent', 'Confirmed')
-      .appendChild(createElement('input', 'type', 'checkbox'));
+      .appendChild(checkbox);
     appendToLI('button', 'textContent', 'edit');
     appendToLI('button', 'textContent', 'remove');
     return li;
   }
-  
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const text = input.value;
-    input.value = '';
-    const li = createLI(text);
-    ul.appendChild(li);
-  });
     
+    const text = input.value;
+    
+    if (text == '') {
+      return;
+    }
+    
+    input.value = '';
+    
+    var lastElement = invitedList.lastChild;
+    
+    var newId = (lastElement == null ? 1 : (parseInt(lastElement.dataset.invId) + 1));
+    console.log(newId);
+    const li = createLI(newId, text, false);
+    ul.appendChild(li);
+    
+    sendInvite(text);
+  });
+
   ul.addEventListener('change', (e) => {
-    const checkbox = event.target;
+    const checkbox = e.target;
     const checked = checkbox.checked;
     const listItem = checkbox.parentNode.parentNode;
+    
+    var id = checkbox.parentNode.parentNode.dataset.invId;
+    
+    // null if editing
+    if (id != null) {
+      setConfirmed(id, checked);
+    }
     
     if (checked) {
       listItem.className = 'responded';
@@ -75,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
       listItem.className = '';
     }
   });
-    
+
   ul.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
       const button = e.target;
@@ -85,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const nameActions = {
         remove: () => {
           ul.removeChild(li);
+          
+          removeInv(li.dataset.invId);
         },
         edit: () => {
           const span = li.firstElementChild;
@@ -93,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
           input.value = span.textContent;
           li.insertBefore(input, span);
           li.removeChild(span);
-          button.textContent = 'save';  
+          button.textContent = 'save';
         },
         save: () => {
           const input = li.firstElementChild;
@@ -101,21 +136,77 @@ document.addEventListener('DOMContentLoaded', () => {
           span.textContent = input.value;
           li.insertBefore(span, input);
           li.removeChild(input);
-          button.textContent = 'edit';        
+          button.textContent = 'edit';
+          
+          updateName(li.dataset.invId, input.value)
         }
       };
-      
+
       // select and run action in button's name
       nameActions[action]();
     }
-  });  
-});  
+  });
   
   
   
+  /*
+   * XMLHttpRequest
+   */
+  const entryPoint = "http://localhost:3000/invitados";
   
+  var data;
   
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      data = JSON.parse(this.responseText);
+      
+      data.forEach(thisData => {
+        const li = createLI(thisData.id, thisData.nombre, thisData.confirmado);
+        ul.appendChild(li);
+      });
+    }
+  };
+  xhttp.open("GET", entryPoint, true);
+  xhttp.send();
   
+  function sendInvite(newName) {
+    var newData = JSON.stringify({
+      nombre: newName,
+      confirmado: false
+    });
+    
+    sendData('POST', null, newData);
+  }
   
+  function updateName(id, newName) {
+    var newData = JSON.stringify({
+      id: id,
+      nombre: newName,
+    });
+    
+    sendData('PATCH', id, newData);
+  }
   
+  function setConfirmed(id, confirmed) {
+    var newData = JSON.stringify({
+      id: id,
+      confirmado: confirmed
+    });
+    
+    sendData('PATCH', id, newData);
+  }
   
+  function removeInv(id) {
+    sendData('DELETE', id, '');
+  }
+  
+  function sendData(requestType, id, newData) {
+    var xPost = new XMLHttpRequest();
+    xPost.open(requestType, (id == null ? entryPoint : entryPoint + '/' + id), true);
+    xPost.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xPost.send(newData);
+    
+    console.log(newData);
+  }
+});

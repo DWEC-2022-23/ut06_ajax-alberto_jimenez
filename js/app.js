@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     var lastElement = invitedList.lastChild;
     
     var newId = (lastElement == null ? 1 : (parseInt(lastElement.dataset.invId) + 1));
-    console.log(newId);
+    
     const li = createLI(newId, text, false);
     ul.appendChild(li);
     
@@ -206,7 +206,5 @@ document.addEventListener('DOMContentLoaded', () => {
     xPost.open(requestType, (id == null ? entryPoint : entryPoint + '/' + id), true);
     xPost.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xPost.send(newData);
-    
-    console.log(newData);
   }
 });

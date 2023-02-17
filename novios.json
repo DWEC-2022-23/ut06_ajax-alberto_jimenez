@@ -24,6 +24,11 @@
       "nombre": "€",
       "confirmado": false,
       "id": 7
+    },
+    {
+      "nombre": "f",
+      "confirmado": false,
+      "id": 8
     }
   ]
 }

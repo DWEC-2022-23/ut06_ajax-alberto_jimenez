@@ -156,21 +156,38 @@ document.addEventListener('DOMContentLoaded', () => {
   
   var data;
   
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      data = JSON.parse(this.responseText);
-      
-      data.forEach(thisData => {
-        const li = createLI(thisData.id, thisData.nombre, thisData.confirmado);
-        ul.appendChild(li);
-      });
-    }
+  async function requestNovios() {
+    promise = await new Promise((resolve, reject) => {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onload = () => {
+        if (xhttp.status >= 200 && xhttp.status < 300) {
+            resolve(xhttp.response);
+        } else {
+            reject(xhttp.statusText);
+        }
+      };
+      xhttp.open("GET", entryPoint, true);
+      xhttp.send();
+    });
+    
+    return promise;
   };
-  xhttp.open("GET", entryPoint, true);
-  xhttp.send();
   
-  function sendInvite(newName) {
+  var promiseResult = requestNovios();
+  
+  promiseResult.then(responseData => {
+    data = JSON.parse(responseData);
+    
+    data.forEach(thisData => {
+      const li = createLI(thisData.id, thisData.nombre, thisData.confirmado);
+      ul.appendChild(li);
+    });
+  })
+  .catch(error => {
+      console.log(error);
+  });
+  
+  async function sendInvite(newName) {
     var newData = JSON.stringify({
       nombre: newName,
       confirmado: false
@@ -179,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendData('POST', null, newData);
   }
   
-  function updateName(id, newName) {
+  async function updateName(id, newName) {
     var newData = JSON.stringify({
       id: id,
       nombre: newName,
@@ -188,7 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendData('PATCH', id, newData);
   }
   
-  function setConfirmed(id, confirmed) {
+  async function setConfirmed(id, confirmed) {
     var newData = JSON.stringify({
       id: id,
       confirmado: confirmed
@@ -197,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendData('PATCH', id, newData);
   }
   
-  function removeInv(id) {
+  async function removeInv(id) {
     sendData('DELETE', id, '');
   }
   
